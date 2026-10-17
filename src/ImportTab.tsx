@@ -1,9 +1,51 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { mapRef } from './mapRef'
 import { useRailStore } from './useRailStore'
 import { REGIONS, fetchRoutes, toLine, type BBox, type Found } from './overpass'
 
 const inp = 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900'
+
+interface Pre { id: number; name: string; color: string; op: string; loop: boolean; points: [number, number][]; stations: { name: string; ll: [number, number] }[] }
+function PresetLines() {
+  const addLines = useRailStore((s) => s.addLines)
+  const [data, setData] = useState<Pre[] | null>(null)
+  const [err, setErr] = useState('')
+  const [picked, setPicked] = useState<Set<number>>(new Set())
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}data/lines.json`).then((r) => r.json()).then(setData).catch(() => setErr('노선 데이터를 불러오지 못했어요.'))
+  }, [])
+  const toggle = (k: number) => setPicked((p) => { const n = new Set(p); if (n.has(k)) n.delete(k); else n.add(k); return n })
+  const add = () => {
+    const ls = (data ?? []).filter((d) => picked.has(d.id)).map((d) => ({
+      name: d.name, color: d.color, loop: d.loop, smooth: 0.15,
+      points: d.points, stations: d.stations.map((s) => ({ id: Math.random().toString(36).slice(2, 9), name: s.name, ll: s.ll })),
+    }))
+    addLines(ls); setPicked(new Set())
+    const m = mapRef.current
+    if (m && ls[0]) m.fitBounds(ls[0].points as [number, number][])
+  }
+  return (
+    <div className="grid gap-2 rounded-xl bg-white p-2 shadow-sm">
+      <div className="text-sm font-semibold">수도권 주요 노선 (바로 불러오기)</div>
+      {err && <p className="text-sm text-red-600">{err}</p>}
+      {!data && !err && <p className="text-sm text-slate-500">불러오는 중…</p>}
+      <div className="max-h-56 overflow-y-auto">
+        {(data ?? []).map((d) => (
+          <label key={d.id} className="flex items-center gap-2 px-1 py-1 text-sm">
+            <input type="checkbox" checked={picked.has(d.id)} onChange={() => toggle(d.id)} />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: d.color }} />
+            <span className="min-w-0 flex-1 truncate">{d.name}</span>
+            <span className="shrink-0 text-xs text-slate-400">{d.stations.length}역</span>
+          </label>
+        ))}
+      </div>
+      <button disabled={picked.size === 0} onClick={add} className="rounded-lg border border-[#0052a4] bg-[#0052a4] px-3 py-2 text-sm text-white disabled:opacity-40">
+        선택한 {picked.size}개 노선 추가
+      </button>
+      <p className="text-xs text-slate-400">데이터: © OpenStreetMap contributors (ODbL). 역·선로는 OSM 기준이라 실제와 다를 수 있어요.</p>
+    </div>
+  )
+}
 
 export default function ImportTab() {
   const addLines = useRailStore((s) => s.addLines)
@@ -39,7 +81,8 @@ export default function ImportTab() {
 
   return (
     <div className="mt-3 grid gap-2">
-      <div className="text-sm font-semibold">실제 노선 불러오기</div>
+      <PresetLines />
+      <div className="mt-2 text-sm font-semibold">다른 지역 · 실시간 검색 (OpenStreetMap)</div>
       <select className={inp} value={region} onChange={(e) => setRegion(e.target.value)}>
         {REGIONS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
         <option value="view">현재 지도 화면</option>

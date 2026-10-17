@@ -2,6 +2,7 @@
 export type LL = [number, number] // [lat, lng]
 export type Method = 'tbm' | 'natm' | 'cut' | 'elevated' | 'surface'
 export type VehicleId = 'heavy10' | 'heavy8' | 'heavy6' | 'light_ui' | 'light_sillim' | 'tram' | 'gtx'
+  | 'sm1000' | 'sm4000' | 'sm5000' | 'sm7000' | 'kr311000' | 'kr361000'
 
 export interface Station { id: string; name: string; ll: LL; method?: Method; vlimit?: number } // method: 이 역에서 다음 역까지의 구간 방식 (없으면 노선 공법 비율)
 export interface Line {
@@ -15,7 +16,7 @@ export interface Line {
   loop: boolean                 // 순환선
   points: LL[]; stations: Station[]
 }
-export interface Vehicle { label: string; cars: number; len: number; cap: number; vmax: number; carCost: number; minR: number }
+export interface Vehicle { label: string; cars: number; len: number; cap: number; vmax: number; carCost: number; minR: number; real?: boolean; est?: string }
 
 export const METHODS: Method[] = ['tbm', 'natm', 'cut', 'elevated', 'surface']
 export const METHOD_LABEL: Record<Method, string> = {
@@ -31,6 +32,13 @@ export const VEHICLES: Record<VehicleId, Vehicle> = {
   heavy6: { label: '중전철 6량', cars: 6, len: 20, cap: 160, vmax: 90, carCost: 18, minR: 250 },
   light_ui: { label: '경전철 (우이신설 규격·대략)', cars: 2, len: 18, cap: 115, vmax: 70, carCost: 12, minR: 100 },
   light_sillim: { label: '경전철 (신림선 규격·대략)', cars: 2, len: 15, cap: 100, vmax: 80, carCost: 12, minR: 100 },
+  // ── 수도권 전철 실제 전동차 (위키백과 제원 기준. est 항목은 확인하지 못해 추정한 값이 있어요) ──
+  sm1000: { label: '서울교통공사 1000호대 VVVF (10량)', cars: 10, len: 19.5, cap: 158, vmax: 110, carCost: 18, minR: 250, real: true },
+  sm4000: { label: '서울교통공사 4000호대 VVVF (10량)', cars: 10, len: 19.5, cap: 160, vmax: 80, carCost: 18, minR: 250, real: true, est: '정원·전장 추정, 속도는 ATC 구간 80km/h 기준' },
+  sm5000: { label: '서울교통공사 5000호대 (8량)', cars: 8, len: 19.5, cap: 160, vmax: 80, carCost: 18, minR: 250, real: true, est: '정원 추정' },
+  sm7000: { label: '서울교통공사 7000호대 (8량)', cars: 8, len: 19.5, cap: 160, vmax: 80, carCost: 18, minR: 250, real: true, est: '편성 량수·정원 추정' },
+  kr311000: { label: '한국철도공사 311000·312000호대 (10량)', cars: 10, len: 19.5, cap: 160, vmax: 110, carCost: 18, minR: 250, real: true, est: '정원·전장 추정' },
+  kr361000: { label: '한국철도공사 361000호대 (8량)', cars: 8, len: 19.5, cap: 157, vmax: 110, carCost: 18, minR: 250, real: true },
   tram: { label: '트램 / 노면전차', cars: 3, len: 10, cap: 60, vmax: 60, carCost: 8, minR: 25 },
   gtx: { label: '광역급행철도 (GTX급 8량)', cars: 8, len: 20, cap: 135, vmax: 150, carCost: 25, minR: 1000 },
 }

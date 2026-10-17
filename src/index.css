@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
+@font-face { font-family: "SeoulNamsan"; font-weight: 400; font-display: swap;
+  src: url("/fonts/namsan-m.woff2") format("woff2"); }
+@font-face { font-family: "SeoulNamsan"; font-weight: 700; font-display: swap;
+  src: url("/fonts/namsan-b.woff2") format("woff2"); }
+
 html, body, #root { height: 100%; margin: 0; }
-body { font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; color: #1b2430; }
+body { font-family: "SeoulNamsan", "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; color: #1b2430; }
 
 /* Tailwind preflight가 지도 타일을 깨뜨리는 문제 방지 */
 .leaflet-container .leaflet-tile,

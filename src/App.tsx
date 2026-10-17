@@ -5,6 +5,7 @@ import { useRailStore, type Mode } from './useRailStore'
 import { BASE_FARE, METHODS, METHOD_LABEL, PRESET_LINES, VEHICLES, calc, fareOf, fmtKRW, route, type Method, type VehicleId } from './rail'
 import { download, readLines, toGeoJSON } from './io'
 import ImportTab from './ImportTab'
+import CloudBar from './CloudBar'
 
 const MODES: { id: Mode; label: string; icon: typeof Hand; hint: string }[] = [
   { id: 'pan', label: '이동', icon: Hand, hint: '지도를 움직여 보세요.' },
@@ -92,6 +93,7 @@ export default function App() {
 
       <aside className="max-h-[52vh] w-full shrink-0 overflow-y-auto border-t border-slate-200 bg-slate-50 p-4 md:max-h-none md:w-96 md:border-l md:border-t-0">
         <h1 className="text-lg font-bold">한국형 철도망 시뮬레이터</h1>
+        <CloudBar />
 
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           {MODES.map(({ id, label, icon: Icon }) => (
@@ -179,13 +181,19 @@ export default function App() {
               <div className="mt-3 grid gap-3">
                 <label className="text-xs text-slate-500">차량 시스템
                   <select className={inp} value={active.vehicle} onChange={(e) => s.update({ vehicle: e.target.value as VehicleId })}>
-                    {Object.entries(VEHICLES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    <optgroup label="기본 규격">
+                      {Object.entries(VEHICLES).filter(([, v]) => !v.real).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </optgroup>
+                    <optgroup label="수도권 전철 실제 전동차">
+                      {Object.entries(VEHICLES).filter(([, v]) => v.real).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </optgroup>
                   </select></label>
                 <div className="grid grid-cols-3 gap-2">
                   <Num label="정차(초)" value={active.dwell} onChange={(v) => s.update({ dwell: v })} />
                   <Num label="배차 목표(초)" value={active.head} onChange={(v) => s.update({ head: v })} />
                   <Num label="편성 수" value={active.fleet} onChange={(v) => s.update({ fleet: v })} />
                 </div>
+                {VEHICLES[active.vehicle].est && <p className="text-xs text-amber-600">※ 일부 값은 확인하지 못해 추정했어요: {VEHICLES[active.vehicle].est}</p>}
                 <p className="text-xs text-slate-400">배차 목표·편성 수는 0이면 자동이에요. 차량 규격은 대략값이라 실제와 다를 수 있어요.</p>
                 {c.ops ? (
                   <div className="rounded-xl bg-white p-3 shadow-sm">
