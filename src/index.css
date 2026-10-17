@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+html, body, #root { height: 100%; margin: 0; }
+body { font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; color: #1b2430; }
+
+/* Tailwind preflight가 지도 타일을 깨뜨리는 문제 방지 */
+.leaflet-container .leaflet-tile,
+.leaflet-container img { max-width: none !important; }
+
+.draw-mode .leaflet-grab, .station-mode .leaflet-grab { cursor: crosshair; }
+.station-label {
+  background: none; border: none; box-shadow: none; padding: 0;
+  font-weight: 700; font-size: 11px; color: #1b2430;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+}
+.station-label::before { display: none; }
