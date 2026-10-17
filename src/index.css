@@ -19,3 +19,9 @@ body { font-family: "SeoulNamsan", "Pretendard", "Apple SD Gothic Neo", "Noto Sa
   text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
 }
 .station-label::before { display: none; }
+
+/* 강조색은 파란색, 기본은 검정·흰색 */
+input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color: #0052a4; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #0052a4; outline-offset: 1px; }
+body { color: #000; background: #fff; }
+.title-font { font-family: "SeoulNamsan", sans-serif; font-weight: 700; letter-spacing: -0.02em; }

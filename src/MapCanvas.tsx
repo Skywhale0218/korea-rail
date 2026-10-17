@@ -1,10 +1,18 @@
-import { Fragment, useEffect, useMemo } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useRailStore } from './useRailStore'
 import { mapRef } from './mapRef'
 import { calc, pathOf, pieces, posAt, project, stationsOn, type LL } from './rail'
+
+/** 지도 확대 단계를 알려줘요 (역 이름은 확대했을 때만 보여요) */
+function ZoomWatch({ onZoom }: { onZoom: (z: number) => void }) {
+  const map = useMap()
+  useEffect(() => { onZoom(map.getZoom()) }, [map, onZoom])
+  useMapEvents({ zoomend: () => onZoom(map.getZoom()) })
+  return null
+}
 
 /** 그리기: 기존 노선의 꼭짓점·역·선로 근처를 누르면 자동으로 맞춰요 */
 function Clicks() {
@@ -97,9 +105,11 @@ export default function MapCanvas() {
     return { items, names }
   }, [lines])
 
+  const [zoom, setZoom] = useState(11)
   return (
     <MapContainer center={[37.5665, 126.978]} zoom={11} className={`h-full w-full ${mode}-mode`} zoomControl={false}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap contributors" maxZoom={19} />
+      <ZoomWatch onZoom={setZoom} />
       <Clicks />
       <RegisterMap />
       <TrainLayer />
@@ -133,7 +143,9 @@ export default function MapCanvas() {
               return (
                 <CircleMarker key={s.id} center={s.ll} radius={transfer ? 9 : 6}
                   pathOptions={{ color: transfer ? '#1b2430' : l.color, weight: 3, fillColor: '#fff', fillOpacity: 1 }}>
-                  <Tooltip permanent direction="right" offset={[8, 0]} className="station-label">{s.name}</Tooltip>
+                  {(zoom >= 14 || (transfer && zoom >= 12)) && (
+                    <Tooltip permanent direction="right" offset={[8, 0]} className="station-label">{s.name}</Tooltip>
+                  )}
                 </CircleMarker>
               )
             })}

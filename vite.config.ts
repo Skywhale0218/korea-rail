@@ -13,7 +13,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '한국형 철도망 시뮬레이터',
+        name: '대한민국 철도 노선 시뮬레이터',
         short_name: '철도망',
         lang: 'ko',
         start_url: '.',
