@@ -79,7 +79,7 @@ function InlinedSearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="건물, 역 검색 (예: 대전한화생명볼파크)"
+          placeholder="건물, 역 검색 (예: 종합운동장역, 롯데월드)"
           className="w-full bg-white text-black text-xs pl-8 pr-7 py-1.5 rounded-lg border border-neutral-300 shadow-sm focus:outline-none focus:border-[#0052a4] placeholder-neutral-400"
         />
         <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 pointer-events-none" />
