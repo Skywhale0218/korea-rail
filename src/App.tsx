@@ -7,7 +7,7 @@ import { download, readLines, toGeoJSON } from './io'
 import ImportTab from './ImportTab'
 import HeaderBar from './CloudBar'
 import { mapRef } from './mapRef'
-import { SearchBar } from './SearchBar'
+import { SearchBox } from './SearchBox'
 import { CustomLineModal } from './CustomLineModal'
 
 const MODES: { id: Mode; label: string; icon: typeof Hand; hint: string }[] = [
@@ -97,7 +97,7 @@ export default function App() {
       <header className="relative z-[1100] flex h-14 shrink-0 items-center justify-between gap-3 border-b border-neutral-300 bg-white px-4">
         <div className="flex items-center gap-3">
           <h1 className="title-font truncate text-xl text-black">대한민국 철도 노선 시뮬레이터</h1>
-          <SearchBar />
+          <SearchBox />
         </div>
 
         <div className="flex items-center gap-2">
@@ -322,7 +322,6 @@ export default function App() {
                     <button className={`${btn} cursor-pointer`} onClick={() => download('korea-rail.json', JSON.stringify({ lines: s.lines }))}>JSON 저장</button>
                     <button className={`${btn} cursor-pointer`} onClick={() => fileRef.current?.click()}>JSON 불러오기</button>
                     <button className={`${btn} cursor-pointer`} onClick={() => download('korea-rail.geojson', toGeoJSON(s.lines, s.overhead), 'application/geo+json')}>GeoJSON 내보내기 (QGIS)</button>
-                    <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => onFile(e.target.files?.[0])} />
                     <p className="text-xs text-neutral-500">작업 내용은 이 브라우저에 자동 저장돼요. 다른 기기로 옮기려면 JSON으로 저장하세요.</p>
                   </div>
                 )}
