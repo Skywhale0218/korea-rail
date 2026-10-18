@@ -39,7 +39,8 @@ interface RailStore {
   setMix: (method: Method, val: number) => void;
   removeLine: (id: string) => void;
 
-  importLines: (lines: Line[]) => void;
+  addLines: (newLines: Line[]) => void;
+  importLines: (lines: (Partial<Line> & { id: string; name: string; points: LL[] })[]) => void;
   setLines: (lines: Line[]) => void;
 }
 
@@ -253,11 +254,37 @@ export const useRailStore = create<RailStore>((set) => ({
       };
     }),
 
-  importLines: (lines) =>
-    set({
-      lines,
-      activeId: lines[0]?.id || null,
-      activeLineId: lines[0]?.id || null,
+  addLines: (newLines) =>
+    set((state) => {
+      const combined = [...state.lines, ...newLines];
+      return {
+        lines: combined,
+        activeId: newLines[0]?.id || state.activeId,
+        activeLineId: newLines[0]?.id || state.activeLineId,
+      };
+    }),
+
+  importLines: (imported) =>
+    set(() => {
+      const fullLines: Line[] = imported.map((p) => ({
+        id: p.id || `line-${Date.now()}`,
+        name: p.name || '노선',
+        color: p.color || '#0052a4',
+        vehicle: p.vehicle || 'heavy10',
+        mix: p.mix || { tbm: 70, natm: 20, cut: 10, elevated: 0, surface: 0 },
+        smooth: typeof p.smooth === 'number' ? p.smooth : 0.5,
+        dwell: typeof p.dwell === 'number' ? p.dwell : 30,
+        head: typeof p.head === 'number' ? p.head : 180,
+        fleet: typeof p.fleet === 'number' ? p.fleet : 0,
+        loop: !!p.loop,
+        points: p.points || [],
+        stations: p.stations || [],
+      }));
+      return {
+        lines: fullLines,
+        activeId: fullLines[0]?.id || null,
+        activeLineId: fullLines[0]?.id || null,
+      };
     }),
 
   setLines: (lines) =>

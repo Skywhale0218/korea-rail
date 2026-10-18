@@ -83,7 +83,11 @@ export default function App() {
 
   const onFile = async (f?: File) => {
     if (!f) return
-    try { s.importLines(readLines(await f.text())) } catch (e) { alert(`불러오지 못했어요. ${(e as Error).message}`) }
+    try { 
+      s.importLines(readLines(await f.text())) 
+    } catch (e) { 
+      alert(`불러오지 못했어요. ${(e as Error).message}`) 
+    }
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -97,6 +101,7 @@ export default function App() {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => fileRef.current?.click()}
             className="flex items-center gap-1 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs hover:border-[#0052a4] hover:text-[#0052a4] cursor-pointer"
             title="JSON 파일 불러오기"
@@ -104,6 +109,7 @@ export default function App() {
             <Upload size={14} className="text-emerald-600" /> JSON 열기
           </button>
           <button
+            type="button"
             onClick={() => download('korea-rail.json', JSON.stringify({ lines: s.lines }))}
             className="flex items-center gap-1 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-xs hover:border-[#0052a4] hover:text-[#0052a4] cursor-pointer"
             title="현재 노선 JSON 저장"
@@ -138,6 +144,7 @@ export default function App() {
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 rounded-xl border border-neutral-300 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
               <span className="text-xs text-neutral-600">연장 기준:</span>
               <button
+                type="button"
                 onClick={s.toggleExtendDirection}
                 className="flex items-center gap-1.5 rounded-lg border border-[#0052a4] bg-[#0052a4]/10 px-2.5 py-1 text-xs font-semibold text-[#0052a4] hover:bg-[#0052a4] hover:text-white transition cursor-pointer"
               >
@@ -167,6 +174,7 @@ export default function App() {
               ))}
 
               <button
+                type="button"
                 onClick={() => setCustomModal(true)}
                 className="flex items-center gap-1 rounded-full border border-neutral-300 bg-white px-3 py-1 text-sm font-medium hover:border-[#0052a4] hover:text-[#0052a4] cursor-pointer"
               >
@@ -329,6 +337,7 @@ export default function App() {
         )}
       </div>
 
+      <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={(e) => onFile(e.target.files?.[0])} />
       <CustomLineModal isOpen={customModal} onClose={() => setCustomModal(false)} />
     </div>
   )
