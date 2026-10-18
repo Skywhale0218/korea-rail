@@ -84,7 +84,8 @@ export default function App() {
   const onFile = async (f?: File) => {
     if (!f) return
     try { 
-      s.importLines(readLines(await f.text())) 
+      const parsed: any = readLines(await f.text())
+      s.importLines(parsed) 
     } catch (e) { 
       alert(`불러오지 못했어요. ${(e as Error).message}`) 
     }
