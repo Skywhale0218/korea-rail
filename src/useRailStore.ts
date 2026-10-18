@@ -39,8 +39,9 @@ interface RailStore {
   setMix: (method: Method, val: number) => void;
   removeLine: (id: string) => void;
 
-  addLines: (newLines: Line[]) => void;
-  importLines: (lines: (Partial<Line> & { id: string; name: string; points: LL[] })[]) => void;
+  // ImportTab.tsx 및 App.tsx의 느슨한 타입 모두 허용
+  addLines: (newLines: any[]) => void;
+  importLines: (lines: any[]) => void;
   setLines: (lines: Line[]) => void;
 }
 
@@ -254,20 +255,34 @@ export const useRailStore = create<RailStore>((set) => ({
       };
     }),
 
-  addLines: (newLines) =>
+  addLines: (newLines: any[]) =>
     set((state) => {
-      const combined = [...state.lines, ...newLines];
+      const formatted: Line[] = newLines.map((p, idx) => ({
+        id: p.id || `line-${Date.now()}-${idx}`,
+        name: p.name || '노선',
+        color: p.color || '#0052a4',
+        vehicle: p.vehicle || 'heavy10',
+        mix: p.mix || { tbm: 70, natm: 20, cut: 10, elevated: 0, surface: 0 },
+        smooth: typeof p.smooth === 'number' ? p.smooth : 0.5,
+        dwell: typeof p.dwell === 'number' ? p.dwell : 30,
+        head: typeof p.head === 'number' ? p.head : 180,
+        fleet: typeof p.fleet === 'number' ? p.fleet : 0,
+        loop: !!p.loop,
+        points: p.points || [],
+        stations: p.stations || [],
+      }));
+      const combined = [...state.lines, ...formatted];
       return {
         lines: combined,
-        activeId: newLines[0]?.id || state.activeId,
-        activeLineId: newLines[0]?.id || state.activeLineId,
+        activeId: formatted[0]?.id || state.activeId,
+        activeLineId: formatted[0]?.id || state.activeLineId,
       };
     }),
 
-  importLines: (imported) =>
+  importLines: (imported: any[]) =>
     set(() => {
-      const fullLines: Line[] = imported.map((p) => ({
-        id: p.id || `line-${Date.now()}`,
+      const fullLines: Line[] = imported.map((p, idx) => ({
+        id: p.id || `line-${Date.now()}-${idx}`,
         name: p.name || '노선',
         color: p.color || '#0052a4',
         vehicle: p.vehicle || 'heavy10',
