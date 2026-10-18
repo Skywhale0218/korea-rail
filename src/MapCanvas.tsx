@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useRailStore } from './useRailStore'
@@ -94,6 +94,8 @@ export default function MapCanvas() {
   const activeId = useRailStore((s) => s.activeId)
   const mode = useRailStore((s) => s.mode)
   const addStation = useRailStore((s) => s.addStation)
+  const removePoint = useRailStore((s) => s.removePoint)
+  const insertPoint = useRailStore((s) => s.insertPoint)
 
   const view = useMemo(() => {
     const names = new Map<string, number>()
@@ -106,6 +108,7 @@ export default function MapCanvas() {
   }, [lines])
 
   const [zoom, setZoom] = useState(11)
+
   return (
     <MapContainer center={[37.5665, 126.978]} zoom={11} className={`h-full w-full ${mode}-mode`} zoomControl={false}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap contributors" maxZoom={19} />
@@ -123,20 +126,59 @@ export default function MapCanvas() {
                 positions={p.pts}
                 pathOptions={{
                   color: l.color, opacity: active ? 1 : 0.7,
-                  weight: p.m === 'elevated' ? (active ? 10 : 8) : p.m === 'surface' ? 4 : active ? 7 : 5, // 고가=굵게, 지상=가늘게
-                  dashArray: p.m === 'tbm' || p.m === 'natm' || p.m === 'cut' ? '10 8' : undefined,       // 지하=점선
+                  weight: p.m === 'elevated' ? (active ? 10 : 8) : p.m === 'surface' ? 4 : active ? 7 : 5,
+                  dashArray: p.m === 'tbm' || p.m === 'natm' || p.m === 'cut' ? '10 8' : undefined,
                 }}
                 eventHandlers={{
                   click(e) {
-                    if (mode !== 'station') return // 그리기 모드는 지도 클릭으로 전달
-                    L.DomEvent.stopPropagation(e)
-                    addStation(l.id, project(path.pts, path.cum, [e.latlng.lat, e.latlng.lng]).ll)
+                    if (mode === 'station') {
+                      L.DomEvent.stopPropagation(e)
+                      addStation(l.id, project(path.pts, path.cum, [e.latlng.lat, e.latlng.lng]).ll)
+                    } else if (mode === 'draw' && active) {
+                      // 조건 4: 지어진 노선 선분 클릭 시 중간 선형 추가 점(points) 삽입
+                      L.DomEvent.stopPropagation(e)
+                      const clickLL: LL = [e.latlng.lat, e.latlng.lng]
+                      if (l.points.length >= 2) {
+                        let bestIdx = 1
+                        let minDist = Infinity
+                        const map = (e as any).target._map as L.Map
+                        const clickPt = map.latLngToLayerPoint(clickLL)
+                        for (let j = 0; j < l.points.length - 1; j++) {
+                          const p1 = map.latLngToLayerPoint(l.points[j])
+                          const p2 = map.latLngToLayerPoint(l.points[j + 1])
+                          const dist = L.LineUtil.pointToSegmentDistance(clickPt, p1, p2)
+                          if (dist < minDist) {
+                            minDist = dist
+                            bestIdx = j + 1
+                          }
+                        }
+                        insertPoint(bestIdx, clickLL)
+                      }
+                    }
                   },
                 }}
               />
             ))}
+            {/* 조건 2: 점 클릭 시 팝업 열리고 개별 삭제 가능 */}
             {active && mode === 'draw' && l.points.map((p, i) => (
-              <CircleMarker key={i} center={p} radius={3} pathOptions={{ color: l.color, fillColor: '#fff', fillOpacity: 1, weight: 2 }} />
+              <CircleMarker 
+                key={i} 
+                center={p} 
+                radius={5} 
+                pathOptions={{ color: l.color, fillColor: '#fff', fillOpacity: 1, weight: 2 }}
+              >
+                <Popup closeButton={false}>
+                  <div className="p-1 text-center font-sans">
+                    <div className="text-[11px] font-bold text-slate-800 mb-1">지점 #{i + 1}</div>
+                    <button
+                      onClick={() => removePoint(i)}
+                      className="px-2 py-0.5 bg-red-500 hover:bg-red-600 text-white rounded text-[10px] font-medium transition cursor-pointer"
+                    >
+                      이 점 삭제
+                    </button>
+                  </div>
+                </Popup>
+              </CircleMarker>
             ))}
             {sts.map((s) => {
               const transfer = (view.names.get(s.name) ?? 0) > 1
