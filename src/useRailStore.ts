@@ -6,7 +6,7 @@ export type Mode = 'pan' | 'draw' | 'station' | 'select';
 interface RailStore {
   lines: Line[];
   activeId: string | null;
-  activeLineId: string | null; // 호환성 유지용
+  activeLineId: string | null;
   mode: Mode;
   extendDirection: 'start' | 'end';
   selectedPointIndex: number | null;
@@ -24,14 +24,12 @@ interface RailStore {
   toggleExtendDirection: () => void;
   setSelectedPointIndex: (idx: number | null) => void;
 
-  // 선로 점 조작
   addPoint: (pt: LL) => void;
   insertPoint: (index: number, pt: LL) => void;
   removePoint: (index: number) => void;
   undoPoint: () => void;
   removeLastPoint: () => void;
 
-  // 역 및 노선 조작
   addStation: (lineIdOrStation: string | Station, maybeLL?: LL) => void;
   updateStation: (stationId: string, patch: Partial<Station>) => void;
   removeStation: (stationId: string) => void;
@@ -41,7 +39,6 @@ interface RailStore {
   setMix: (method: Method, val: number) => void;
   removeLine: (id: string) => void;
 
-  // 전체 데이터 교체
   importLines: (lines: Line[]) => void;
   setLines: (lines: Line[]) => void;
 }
@@ -188,4 +185,85 @@ export const useRailStore = create<RailStore>((set) => ({
       })),
     })),
 
-  newLine
+  newLine: (preset) =>
+    set((state) => {
+      const id = `line-${Date.now()}`;
+      const l: Line = {
+        id,
+        name: preset.name,
+        color: preset.color,
+        vehicle: 'heavy10',
+        mix: { tbm: 70, natm: 20, cut: 10, elevated: 0, surface: 0 },
+        smooth: 0.5,
+        dwell: 30,
+        head: 180,
+        fleet: 0,
+        loop: false,
+        points: [],
+        stations: [],
+      };
+      return {
+        lines: [...state.lines, l],
+        activeId: id,
+        activeLineId: id,
+        mode: 'draw',
+      };
+    }),
+
+  addCustomLine: (newLine) =>
+    set((state) => ({
+      lines: [...state.lines, newLine],
+      activeId: newLine.id,
+      activeLineId: newLine.id,
+      mode: 'draw',
+    })),
+
+  update: (patch) =>
+    set((state) => {
+      const curId = state.activeId || state.activeLineId;
+      if (!curId) return state;
+      return {
+        lines: state.lines.map((l) => (l.id === curId ? { ...l, ...patch } : l)),
+      };
+    }),
+
+  setMix: (method, val) =>
+    set((state) => {
+      const curId = state.activeId || state.activeLineId;
+      if (!curId) return state;
+      return {
+        lines: state.lines.map((l) => {
+          if (l.id !== curId) return l;
+          return {
+            ...l,
+            mix: { ...l.mix, [method]: val },
+          };
+        }),
+      };
+    }),
+
+  removeLine: (id) =>
+    set((state) => {
+      const remain = state.lines.filter((l) => l.id !== id);
+      const nextId = remain[0]?.id || null;
+      return {
+        lines: remain,
+        activeId: nextId,
+        activeLineId: nextId,
+      };
+    }),
+
+  importLines: (lines) =>
+    set({
+      lines,
+      activeId: lines[0]?.id || null,
+      activeLineId: lines[0]?.id || null,
+    }),
+
+  setLines: (lines) =>
+    set({
+      lines,
+      activeId: lines[0]?.id || null,
+      activeLineId: lines[0]?.id || null,
+    }),
+}));
