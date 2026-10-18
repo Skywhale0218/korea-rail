@@ -6,7 +6,6 @@ import { useRailStore } from './useRailStore'
 import { mapRef } from './mapRef'
 import { calc, pathOf, pieces, posAt, project, stationsOn, type LL } from './rail'
 
-/** 지도 확대 단계를 알려줘요 (역 이름은 확대했을 때만 보여요) */
 function ZoomWatch({ onZoom }: { onZoom: (z: number) => void }) {
   const map = useMap()
   useEffect(() => { onZoom(map.getZoom()) }, [map, onZoom])
@@ -14,7 +13,6 @@ function ZoomWatch({ onZoom }: { onZoom: (z: number) => void }) {
   return null
 }
 
-/** 그리기: 기존 노선의 꼭짓점·역·선로 근처를 누르면 자동으로 맞춰요 */
 function Clicks() {
   const map = useMap()
   useMapEvents({
@@ -51,7 +49,6 @@ function RegisterMap() {
   return null
 }
 
-/** 열차 애니메이션: 역 정차 + 가감속, 등간격 배차 */
 function TrainLayer() {
   const map = useMap()
   const lines = useRailStore((s) => s.lines)
@@ -135,7 +132,6 @@ export default function MapCanvas() {
                       L.DomEvent.stopPropagation(e)
                       addStation(l.id, project(path.pts, path.cum, [e.latlng.lat, e.latlng.lng]).ll)
                     } else if (mode === 'draw' && active) {
-                      // 조건 4: 지어진 노선 선분 클릭 시 중간 선형 추가 점(points) 삽입
                       L.DomEvent.stopPropagation(e)
                       const clickLL: LL = [e.latlng.lat, e.latlng.lng]
                       if (l.points.length >= 2) {
@@ -159,7 +155,6 @@ export default function MapCanvas() {
                 }}
               />
             ))}
-            {/* 조건 2: 점 클릭 시 팝업 열리고 개별 삭제 가능 */}
             {active && mode === 'draw' && l.points.map((p, i) => (
               <CircleMarker 
                 key={i} 
@@ -171,6 +166,7 @@ export default function MapCanvas() {
                   <div className="p-1 text-center font-sans">
                     <div className="text-[11px] font-bold text-slate-800 mb-1">지점 #{i + 1}</div>
                     <button
+                      type="button"
                       onClick={() => removePoint(i)}
                       className="px-2 py-0.5 bg-red-500 hover:bg-red-600 text-white rounded text-[10px] font-medium transition cursor-pointer"
                     >
